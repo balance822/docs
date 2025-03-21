@@ -80,7 +80,7 @@ message SignOutNotificationResp {
 # 用户协议
 
 ## 1、封号主动推送
-响应协议:UserFrozenToLoginRespCmdId = 0x30018FFF;</br>
+响应协议:UserFrozenToLoginRespCmdId = 0x30018FFF;<br>
 ```
 message UserFrozenToLoginResp {
     //UserFrozenToLoginRespCmdId = 0x30018FFF;
@@ -312,11 +312,9 @@ message GetUserConfigResp {
 ## 16、 push设置
 ```
 message ACPBUpdatePushConfigReq {
-  /*
    config json string
    lan: 推送语言(zh_CN、en_US)
    preview: 推送是否显示详情(0:否 1:是)
-   */
   string content = 1;
 }
 
@@ -492,7 +490,7 @@ message SendPrivateChatMessageResp {
 }
 ```
 
-## 29、回复/引用单聊消息
+## 29、回复单聊消息
 ```
 message ReplyPrivateChatMessageReq {
     //ReplyPrivateChatMessageReqCmdId = 0x60011002;
@@ -682,7 +680,7 @@ message GetWebDialogListResp {
 }
 ```
 
-## 38、获取新消息 注：不区分privatechat/groupchat
+## 38、获取新消息
 ```
 message GetNewMessageForLiteReq {
     //GetNewMessageForLiteReq = 0x60011027;
@@ -856,7 +854,7 @@ message UpdatePrivateChatDialogBurnAfterReadingConfigResp {
 }
 ```
 
-## 49、获取会话密钥 注: 该请求不区分 privatechat/groupchat
+## 49、获取会话密钥 注: 该请求不区分 privatechat、groupchat
 ```
 message GetDialogKeyReq {
     //GetDialogKeyReqCmdId = 0x60011015;
@@ -1359,7 +1357,7 @@ message SendGroupChatMessageResp{
 }
 ```
 
-## 78、群聊reply/引用消息 请求
+## 78、群聊引用消息 请求
 ```
 message ReplyGroupChatMessageReq{
    //ReplyGroupChatMessageReqCmdId=0x60021002;
@@ -1851,7 +1849,7 @@ message DialogMessageList{
 ```
 
 
-## 被引用的会话消息，用于reply/forward场景
+## 被引用的会话消息
 ```
 message ReferenceDialogMessage {
   int64 msgId = 1; //消息在服务器端分配的id
