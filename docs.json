@@ -60,7 +60,7 @@
           {
             "group": "sdk doc",
             "pages": [
-              "api-reference/introduction"
+              "sdk-doc/sdk"
             ]
           },
           {
