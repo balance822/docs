@@ -1,8 +1,10 @@
 
 
 
-# 网关相关协议
-
+---
+title: 网关相关协议
+description: "网关相关协议"
+---
 
 ## 心跳请求
 ```
@@ -608,7 +610,7 @@ message GetPrivateChatDialogDetailResp {
     bool burnAfterReadingFlag = 11; //是否阅后即焚
     bool takeScreenshotFlag = 12; //是开启截屏通知
     int64 burnAfterReadingTime=13; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
-    
+
 }
 ```
 
@@ -643,7 +645,7 @@ message GetPrivateChatHistoryMessageResp{
     //SendPrivateChatReadAckReqCmdId=0x60011024;
     repeated ChatMessage chatMessage=1;
   }
-  
+
   message SendPrivateChatReadAckResp{
       //SendPrivateChatReadAckRespCmdId=0x60018024;
       int32 errorCode = 1;
@@ -1112,7 +1114,7 @@ message CreateGroupChatDialogResp{
    int64 groupId=3; // 创建成功后server端的groupId
    string groupTitle=4; // group名字
    repeated GroupMember groupMember=5; // 群聊成员信息列表
-   
+
 }
 ```
 
@@ -1166,7 +1168,7 @@ message DeleteGroupChatUserResp{
    string notification=3; // 操作后的提醒消息
    string groupTitle=4; // 操作后的群名称
    int32 successNum=5; // 删除成功的成员数量
-   
+
 }
 ```
 
@@ -1177,7 +1179,7 @@ message AddGroupChatUserNewReq{
    int64 groupId=1; // 群id
    string channelId=2; // 频道id
    repeated int64 memberUid=3;
-} 
+}
 
 //添加群成员 返回
 message AddGroupChatUserNewResp{
@@ -1290,7 +1292,7 @@ message DeleteAndLeaveGroupChatDialogResp{
    int32 errorCode = 1;
       string errorMessage = 2;
    string notification=3;//提示消息
-  
+
 }
 ```
 
@@ -1348,7 +1350,7 @@ message SendGroupChatMessageReq{
   string objectName = 16; //消息类型
   bool save = 17; //是否需要保存到db
 }
-//发送消息 回复 
+//发送消息 回复
 message SendGroupChatMessageResp{
    //SendGroupChatMessageRespCmdId=0x60028001;
    int32 errorCode = 1;
@@ -1441,8 +1443,8 @@ message ForwardMessageToGroupChatResp{
 message GetGroupChatDialogDetailNewReq{
   //GetGroupChatDialogDetailNewReqCmdId=0x6002101E;
   int64 groupId=1; // 群id
-} 
- 
+}
+
  //获取群详情  回复
 message GetGroupChatDialogDetailNewResp{
   //GetGroupChatDialogDetailNewRespCmdId=0x6002801E;
@@ -1689,14 +1691,14 @@ message UpdateGroupMessageLifetimeFlagReq{
     bool groupMessageLifetimeFlag=2;//群消息有效期开关 (true为开启 false为关闭)
 }
 
-//更新群消息有效期开关 
+//更新群消息有效期开关
 message UpdateGroupMessageLifetimeFlagResp{
     //UpdateGroupMessageLifetimeFlagRespCmdId=0x6002804C;
     int32 errorCode = 1;
     string errorMessage=2;
     bool groupMessageLifetimeFlag=3;//群消息有效期开关 (true为开启 false为关闭)
     int64 groupMessageLifetime=4;//群消息有效期 (单位 ms 默认为0永远不过期)
-     
+
 }
 ```
 
