@@ -1,10 +1,7 @@
----
-title: 网关相关协议
-description: "网关相关协议"
----
+
 
 ---
-title: 心跳请求
+ 心跳请求
 ---
 
 ```
@@ -42,4 +39,1895 @@ message HandshakeResp {
 }
 ```
 
-[Rest of file content remains unchanged...]
+## 确认握手请求
+```
+message ConfirmHandshakeReq {
+  //ConfirmHandshakeReqCmdId  = 0x10001004;
+  string pubKey = 1; //公钥
+  int64 timestamp = 2; //时间戳
+  int32 pubkeyIndex = 3; //公钥索引
+  string sign = 4; //签名
+}
+
+message ConfirmHandshakeResp {
+  //ConfirmHandshakeRespCmdId = 0x10008004;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+  int64 timestamp = 3; //时间戳
+}
+```
+
+## 服务端主动登出
+```
+//请求来自上一个登录的客户端， 发送SessionKill
+message SessionKilledNotificationResp {
+  //SessionKilledNotificationRespCmdId = 0x10008005;
+    int32 newLoginDeviceType = 1; //新登陆所在的设备类型 1:安卓 2:iOS 3:web 4:pc.
+    string newLoginImei = 2; //新登陆所在的手机串号
+    string newLoginPhoneBrand = 3; // 新登陆所在的手机品牌
+    string newLoginPhoneModel = 4; // 新登陆所在手机型号
+    bool forceLogoutDeleteAllLocalMessagesFlag=5;//踢人下线删除 默认为不删除 false
+}
+
+//退出登录提醒 比如sessionId/deviceId不正确的情况 客户端收到该消息后，应退出登录，让用户重新登录
+message SignOutNotificationResp {
+  //SessionKilledNotificationRespCmdId = 0x10008007; //注:原值为0x10001007 现修正为0x10008007
+    int64 errorCode = 1; //SESSIONID_INVALID_ERRORCODE 或者 DEVICEID_INVALID_ERRORCODE
+}
+```
+
+
+# 用户协议
+
+## 1、封号主动推送
+响应协议:UserFrozenToLoginRespCmdId = 0x30018FFF;</br>
+```
+message UserFrozenToLoginResp {
+    //UserFrozenToLoginRespCmdId = 0x30018FFF;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int32 frozenType = 3; // 封号级别
+    bool forceLogoutDeleteAllLocalMessagesFlag=4;//踢人下线删除 默认为不删除 false
+}
+```
+
+## 2、退出登录
+```
+message AuthLogOutReq {
+    //AuthLogOutReqCmdId  = 0x30011004;
+  int32 appVersionCode = 1; //app版本号
+    int32 deviceType = 2; //1:安卓 2:iOS 6:web 7:pc
+  string imei = 3; //手机串号
+    string brand = 4; //手机品牌
+  string model = 5; //手机型号
+  bool isBackEnd = 6; //
+}
+
+message AuthLogOutResp {
+    //AuthLogOutRespCmdId  = 0x30018004;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 3、更新用户名
+```
+message UpdateUserNickNameReq {
+  //UpdateUserNickNameReqCmdId = 0x30111004;
+  string userNickName = 1; //用户名，唯一标识，用于这个用户的查询。
+}
+
+message UpdateUserNickNameResp {
+  //UpdateUserNickNameRespCmdId = 0x30118004;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 4、更新用户头像
+```
+message UpdateUserAvatarReq {
+  //UpdateUserAvatarReqCmdId = 0x30111005;
+  string smallAvatarUrl = 1; //头像缩略图
+  string orginAvatarUrl = 2; //头像原图
+}
+
+message UpdateUserAvatarResp {
+  //UpdateUserAvatarRespCmdId = 0x30118005;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 5、通过UID批量查询用户信息
+ ```
+message GetUserProfilesByUidsReq {
+  //GetUserProfilesByUidsReqCmdId = 0x30111007;
+  repeated int64 uids = 1;
+}
+
+message GetUserProfilesByUidsResp {
+  //GetUserProfilesByUidsRespCmdId = 0x30118007;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    repeated User user = 3; //用户信息
+}
+ ```
+
+## 6、更新推送时需要token
+```
+message UpdateApnsTokenReq {
+  //UpdateApnsTokenReqCmdId = 0x3011100D;
+  string apnsToken = 1; // apns推送需要的token
+  string brand = 2; // 手机品牌 (Android需要)
+  string pushKitToken = 3; //苹果 pushKit推送需要的token
+  string pushBand = 4; //推送需要的品牌
+  string pushToken = 5; //推送需要的token
+}
+
+message UpdateApnsTokenResp {
+  //UpdateApnsTokenRespCmdId = 0x3011800D;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+
+## 7、获取"声音提醒"配置
+```
+message GetAlertConfigReq {
+  //GetAlertConfigReqCmdId = 0x30111012;
+}
+
+message GetAlertConfigResp {
+  //GetAlertConfigRespCmdId = 0x30118012;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+  bool globalMuteFlag = 3; // true: 不接收消息提醒 false: 接收消息提醒
+  bool soundAlertFlag = 4; // true: 打开声音提醒 false: 关闭声音提醒
+  bool vibrationAlertFlag = 5; // true: 打开声音提醒 false: 关闭声音提醒
+  bool audioCallMuteFlag = 6;  //是否打开 "语音呼叫" 静音 false表示打开 true为关闭
+  bool previewFlag = 7;//是否显示发件人的信息开关 true表示打开 false为关闭
+  bool pushKitAudioCallFlag=8;//pushKit语音配置 默认为false 开启为true
+}
+```
+
+## 8、更新 "全局不提醒" 设置
+```
+message UpdateGlobalMuteConfigReq {
+  //UpdateGlobalMuteConfigReqCmdId = 0x30111013;
+  bool globalMuteFlag = 1; // true: 打开全局静音 false:关闭全局静音
+}
+
+message UpdateGlobalMuteConfigResp {
+  //UpdateGlobalMuteConfigRespCmdId = 0x30118013;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 9、更新 "声音提醒" 设置
+```
+message UpdateSoundAlertConfigReq {
+  //UpdateSoundAlertConfigReqCmdId = 0x30111014;
+  bool soundAlertFlag = 1; // true: 打开全局静音 false:关闭全局静音
+}
+
+message UpdateSoundAlertConfigResp {
+  //UpdateSoundAlertConfigRespCmdId = 0x30118014;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+
+## 10、更新用户已读回执开关状态
+```
+message UpdateReadReceiptConfigReq {
+  //UpdateReadReceiptConfigReqCmdId = 0x30111023;
+    bool readReceiptFlag = 1; //是否打开已读回执
+}
+
+message UpdateReadReceiptConfigResp {
+  //UpdateReadReceiptConfigRespCmdId = 0x30118023;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+
+## 11、获取 是否开启已读回执 配置
+```
+message GetReadReceiptConfigReq {
+  //GetReadReceiptConfigReqCmdId = 0x30111028;
+}
+
+message GetReadReceiptConfigResp {
+  //GetReadReceiptConfigRespCmdId = 0x30118028;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+    bool readReceiptFlag = 3; //是否打开已读回执
+}
+```
+
+## 12、设置语音开关
+```
+message UpdateAudioCallMuteConfigReq {
+  //UpdateAudioCallMuteConfigReqCmdId = 0x3011102A;
+    bool audioCallMuteFlag = 1; //是否打开 "语音呼叫" false表示打开 true为关闭
+}
+
+message UpdateAudioCallMuteConfigResp {
+  //UpdateAudioCallMuteConfigRespCmdId = 0x3011802A;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 13、设置在线状态和正在输入开关
+```
+message UpdateOnlineStatusConfigReq {
+  //UpdateOnlineStatusConfigReqCmdId = 0x3011102B;
+    bool onlineStatusFlag = 1; //是否打开 "在线状态和正在输入" true表示打开 false为关闭
+}
+
+message UpdateOnlineStatusConfigResp {
+  //UpdateOnlineStatusConfigRespCmdId = 0x3011802B;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+
+## 14、增加用户配置信息
+```
+message AddUserConfigReq {
+  //AddUserConfigReqCmdId = 0x40021001;
+  repeated ConfigItem configItemList = 1; //用户配置信息
+}
+
+message AddUserConfigResp {
+  //AddUserConfigRespCmdId = 0x40028001;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 15、获取用户配置信息
+```
+message GetUserConfigReq {
+  //GetUserConfigReqCmdId = 0x40021002;
+  repeated string keys = 1; // 如keys为空，则返回所有的用户配置
+}
+
+message GetUserConfigResp {
+  //GetUserConfigRespCmdId = 0x40028002;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+    repeated ConfigItem configItemList = 3; //用户配置信息
+}
+```
+
+
+## 16、 push设置
+```
+message ACPBUpdatePushConfigReq {
+  /*
+   config json string
+   lan: 推送语言(zh_CN、en_US)
+   preview: 推送是否显示详情(0:否 1:是)
+   */
+  string content = 1;
+}
+
+message ACPBUpdatePushConfigResp {
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+## 17、 获取push设置
+```
+message ACPBGetPushConfigReq {
+}
+
+// 获取push设置
+message ACPBGetPushConfigResp {
+  int32 errorCode = 1;
+  string errorMessage = 2;
+  string content = 3;
+}
+```
+
+## 18、把联系人加入或者取消黑名单
+```
+message BlockContactsReq {
+  repeated int64 destIds = 1; //联系人id
+  bool blockFlag = 2; //加入黑名单为true,取消为false
+}
+message BlockContactsResp {
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+## 19、查询黑名单列表
+```
+message GetBlocksReq {
+  repeated int64 destId = 1; //空，则查询拉黑列表，非空，则查询对应的用户是否在拉黑列表，如果被拉黑，就返回该用户id
+}
+message GetBlocksResp {
+  int32 errorCode = 1;
+  string errorMessage = 2;
+  repeated int64 destIds = 3; // 用户
+}
+```
+
+## 20、获取oss配置
+```
+message GetSysConfigReq{
+  //0x40011014
+}
+
+message GetSysConfigResp{
+  //0x40018014
+  int32 errorCode = 1;
+  string errorMessage = 2;
+  repeated ConfigItem config = 3;
+}
+```
+
+## 21、群聊联系人
+```
+message GroupContact {
+  int64 groupId = 1; //群id
+  string groupTitle = 2; //群名称
+  int32 totalMemberNumber = 3; //群总人数
+  repeated string groupMemberSmallAvatarUrl = 4; //群成员的头像url列表，严格按照成员在群里面的顺序，返回前9个群成员的头像连接
+}
+```
+
+## 22、删除联系人
+```
+message DelContactsReq {
+    //DelContactsReqCmdId= 0x40011003
+  repeated int64 uid = 1; //待删除的联系人id
+}
+message DelContactsResp {
+    //DelContactsRespCmdId= 0x40018003
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 23、添加好友
+```
+message AddFriendReq {
+    //AddFriendReqCmdId= 0x40011007
+    int64 uid = 1; //联系人id
+    int32 addMeType = 2; // 添加我的方式（0：默认，1：群聊，2：二维码，3：名片，4：搜索，5：链接，6：通讯录匹配）
+}
+message AddFriendResp {
+    //AddFriendRespCmdId= 0x40018007
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    User user = 3; // 用户
+}
+```
+
+## 24、设置好友别名
+```
+message UpdateContactAliasReq {
+    //UpdateContactAliasReqCmdId= 0x40011008
+  int64 destId = 1; //好友id
+  string destAlias = 2; //好友别名
+  repeated string aliasMobile = 3; // 备注电话号码列表
+    string aliasDesp = 4; // 备注描述
+}
+message UpdateContactAliasResp {
+    //UpdateContactAliasRespCmdId= 0x40018008
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+# 私聊、群聊协议
+
+## 25、 有新信息提醒，需要移动终端到服务器拉取
+```
+message NewMessageNotificationResp {
+    //NewMessageNotificationRespCmdId = 0x60018000;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 seqno = 3; //服务器端最新的消息序号
+}
+```
+
+## 26、私聊 开始输入主动推送
+```
+message StartTypingPrivateChatMessagePushResp {
+    //StartTypingPrivateChatMessagePushRespCmdId = 0x60018FFE;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 destId = 3; //谁输入的
+}
+```
+
+## 27、私聊 结束输入主动推送
+```
+message EndTypingPrivateChatMessagePushResp {
+    //EndTypingPrivateChatMessagePushRespCmdId = 0x60018FFD;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 destId = 3; //谁输入的
+}
+```
+
+## 28、发送单聊消息
+```
+message SendPrivateChatMessageReq {
+    //SendPrivateChatMessageReqCmdId = 0x60011001;
+    string destId = 1; // 收件人uid
+    int64 localId = 2; // app端分配的消息id
+    string msgPreContent = 3; //消息的前置内容 (如果没有多媒体内容，preContent传空值，统一使用postContent) if 图片，图片地址，通知类消息
+    string msgPostContent = 4; //消息的后置内容 (如果没有多媒体内容，请使用这个字段) 纯文本消息
+    bool mediaFlag = 5; // 是否有多媒体内容
+    int32 mediaConstructor = 6; //消息中包涵的多媒体类型 取值为XLMediaObject其相应的constructor
+    string mediaAttribute = 7; //多媒体属性的JSON格式
+    string extra = 8;
+    string pushContent = 9;
+    bytes msgContent = 10;
+    bool isSystem = 11; //http服务发起的请求，如果是系统推送，不区分用户是否被封禁
+    string objectName = 12; //消息类型
+    bool save = 13; //是否需要保存到db
+}
+message SendPrivateChatMessageResp {
+    //SendPrivateChatMessageRespCmdId = 0x60018001;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+  int64 localId = 3; //app端分配的消息id
+  int64 msgId = 4; //服务器端消息id
+  int64 msgSendTime = 5; //服务器端记录的发送时间戳
+    int64 seqno=6; //消息游标
+}
+```
+
+## 29、回复/引用单聊消息
+```
+message ReplyPrivateChatMessageReq {
+    //ReplyPrivateChatMessageReqCmdId = 0x60011002;
+    string destId = 1; // 收件人uid
+    int64 localId = 2; // app端分配的消息id
+  string msgPreContent = 3; //消息的前置内容 (如果没有多媒体内容，preContent传空值，统一使用postContent)
+  string msgPostContent = 4; //消息的后置内容 (如果没有多媒体内容，请使用这个字段)
+  bool mediaFlag = 5; // 是否有多媒体内容
+  int32 mediaConstructor = 6; //消息中包涵的多媒体类型 取值为XLMediaObject其相应的constructor
+  string mediaAttribute = 7; //多媒体属性的JSON格式
+
+  int64 msgIdReferenced = 8; //引用消息的id
+  int64 msgSrcIdReferenced = 9; //引用消息的发件人id
+  int64 msgDestIdReferenced = 10; //引用消息的收件人id
+  string msgPreContentReferenced = 11; //前置消息的内容(存放多媒体内容，如果没有多媒体内容，传空值)
+  string msgPostContentReferenced = 12; //后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+  bool mediaFlagReferenced = 13; //是否有多媒体内容
+  int32 mediaConstructorReferenced = 14; // 消息中包涵的多媒体类型,取值为相应的XLMediaObject其constructor
+  string mediaAttributeReferenced = 15; //多媒体属性的JSON格式
+  int64 msgSendTimeReferenced = 16; //引用消息的发送时间
+}
+message ReplyPrivateChatMessageResp {
+    //ReplyPrivateChatMessageRespCmdId = 0x60018002;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+  int64 localId = 3; //app端分配的消息id
+  int64 msgId = 4; //服务器端消息id
+  int64 msgSendTime = 5; //服务器端记录的发送时间戳
+}
+```
+
+## 30、转发消息
+```
+message ForwardMessageToPrivateChatReq{
+   //ForwardMessageToPrivateChatReqCmdId = 0x60011003;
+     string  destId=1;  //收件人uin
+     int64  localId=2;  //app端分配的消息id
+     string msgPreContent=3;  //前置消息的内容 (如果没有多媒体内容，preContent传空值，)
+     string msgPostContent=4;  //后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+     bool mediaFlag=5;  //是否有多媒体内容
+     int32 mediaConstructor=6;  //消息中包涵的多媒体类型 取值为相应的SGMediaObject其constructor
+     string mediaAttribute=7;  //多媒体属性的JSON格式
+
+     int64 msgIdReferenced=8;  //引用消息的id
+     int64 msgSrcIdReferenced=9;  //引用消息的发件人uin
+     int64 msgDestIdReferenced=10;  //引用消息的收件人uin
+     string msgPreContentReferenced=11;  //前置消息的内容 (如果没有多媒体内容，preContent传空值，)
+     string msgPostContentReferenced=12;  //后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+     bool mediaFlagReferenced=13;  //是否有多媒体内容
+     int32 mediaConstructorReferenced=14;  //消息中包涵的多媒体类型 取值为相应的SGMediaObject其constructor
+     string mediaAttributeReferenced=15;  //多媒体属性的JSON格式
+     int64 msgSendTimeReferenced=16;  //引用消息的发送时间
+     bool msgGroupFlagReferenced=17;  //引用消息是否来自群消息
+     int64 msgGroupIdReferenced=18;  //如引用消息来自群消息，对应的群uin
+}
+
+message ForwardMessageToPrivateChatResp{
+  //ForwardMessageToPrivateChatRespCmdId=0x60018003;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+  int64 localId = 3; //app端分配的消息id
+  int64 msgId = 4; //服务器端消息id
+  int64 msgSendTime = 5; //服务器端记录的发送时间戳
+}
+```
+
+## 31、删除会话以及所有历史消息
+```
+message DeletePrivateChatDialogReq {
+    //DeletePrivateChatDialogReqCmdId = 0x60011004;
+    string destId = 1; // 会话id
+}
+message DeletePrivateChatDialogResp {
+    //DeletePrivateChatDialogRespCmdId = 0x60018004;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 32、创建私聊会话
+```
+message CreatePrivateChatDialogReq{
+  //CreatePrivateChatDialogReqCmdId=0x60011005;
+  string destId=1;
+}
+
+message CreatePrivateChatDialogResp{
+  //CreatePrivateChatDialogRespCmdId=0x60018005;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 33、获取私聊会话详情
+```
+message GetPrivateChatDialogDetailReq {
+    //GetPrivateChatDialogDetailReqCmdId = 0x60011006;
+    string destId = 1; // 会话id
+}
+message GetPrivateChatDialogDetailResp {
+    //GetPrivateChatDialogDetailRespCmdId = 0x60018006;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 destId = 3; // 目标会话id
+    string dialogTitle = 4; // 会话名称
+    string smallAvatarUrl = 5; //头像缩略图
+    string originalAvatarUrl = 6; //头像原图
+    string qrcodeString = 7; // 二维码对应的URI字符串
+    bool stickyFlag = 8; //是否置顶
+    bool muteFlag = 9; //是否免打扰
+    bool blockFlag = 10; //是否拉黑
+    bool burnAfterReadingFlag = 11; //是否阅后即焚
+    bool takeScreenshotFlag = 12; //是开启截屏通知
+    int64 burnAfterReadingTime=13; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+
+}
+```
+
+## 34、获取私聊历史消息
+```
+message GetPrivateChatHistoryMessageReq{
+  //GetPrivateChatHistoryMessageReqCmdId = 0x60011007;
+    string destId=1;  //对方Id
+    int64 seqno=2;  //消息序号下限
+    int32 rows=3;  //希望拉取的消息数量
+}
+
+message GetPrivateChatHistoryMessageResp{
+  //GetPrivateChatHistoryMessageRespCmdId= 0x60018007;
+  int32 errorCode = 1;
+    string errorMessage = 2;
+    string destId=3;  //对方Id
+    int64 seqno=4;  //消息序号下限
+    bool hasNext=5;  //是否还有历史消息
+    repeated DialogMessage dialogMessage = 6;//消息列表
+}
+```
+
+## 35、对方消息已读回执
+```
+  message ChatMessage{
+      string destId=1;  //目标id
+      repeated int64 msgId=2;//消息id列表
+  }
+  //对方消息已读回执
+  message SendPrivateChatReadAckReq{
+    //SendPrivateChatReadAckReqCmdId=0x60011024;
+    repeated ChatMessage chatMessage=1;
+  }
+
+  message SendPrivateChatReadAckResp{
+      //SendPrivateChatReadAckRespCmdId=0x60018024;
+      int32 errorCode = 1;
+      string errorMessage = 2;
+  }
+```
+
+## 36、获取会话列表
+```
+message GetDialogListReq {
+    //GetDialogListReqCmdId = 0x6001101E;
+    int32 pageNo = 1; //第几页
+    int32 pageSize = 2; //每页多少行
+}
+message GetDialogListResp {
+    //GetDialogListRespCmdId = 0x6001801E;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 seqno = 3; // 目标会话id
+    bool hasNext = 4; //是否还有历史消息
+    repeated FullDialog fullDialog = 5; //会话列表
+}
+```
+
+## 37、获取web会话列表
+```
+message GetWebDialogListReq {
+    int32 type = 1; // 会话类型 1:private 3:group
+    int64 offset = 2; // 起始时间（最新一条消息的seqno）
+    int32 rows = 3; // 条数
+    bool newToOld = 4; // 查询方向
+}
+message GetWebDialogListResp {
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    repeated WebFullDialog fullDialog = 3; //会话列表
+}
+```
+
+## 38、获取新消息 注：不区分privatechat/groupchat
+```
+message GetNewMessageForLiteReq {
+    //GetNewMessageForLiteReq = 0x60011027;
+    int64 offset = 1; //客户端持有的当前消息序号偏移量
+    int32 rows = 2; //取正值，表示分页请求
+}
+message GetNewMessageForLiteResp {
+    //GetNewMessageForLiteReq = 0x60018027;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 offset = 3; // 服务器端对应的消息偏移量d
+    int64 seqno = 4; //服务器端最新的消息序号
+    map<string, DialogMessageList> msg = 5; // map<destId, DialogMessageList> 有新消息的会话对应的消息列表
+    map<string, ReferenceDialogMessage> reference = 6; // map<msgIdReferenced, ReferenceDialogMessage> 引用的消息信息
+}
+```
+
+## 39、置顶设置
+```
+message UpdatePrivateChatDialogStickyConfigReq {
+    //UpdatePrivateChatDialogStickyConfigReqCmdId = 0x6001100A;
+    string destId = 1; //目标会话
+    bool stickyFlag = 2; //是否置顶
+}
+message UpdatePrivateChatDialogStickyConfigResp {
+    //UpdatePrivateChatDialogStickyConfigRespCmdId = 0x6001800A;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 40、免打扰设置
+```
+message UpdatePrivateChatDialogMuteConfigReq {
+    //UpdatePrivateChatDialogMuteConfigReqCmdId = 0x6001100B;
+    string destId = 1; //目标会话
+    bool muteFlag = 2; //是否免打扰
+}
+message UpdatePrivateChatDialogMuteConfigResp {
+    //UpdatePrivateChatDialogMuteConfigRespCmdId = 0x6001800B;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 41、群免打扰设置
+```
+message UpdateChatDialogMuteConfigReq {
+    repeated string destId = 1; //目标会话
+    int32 muteFlag = 2; //-1接收全部通知 0初始状态 2接收被@通知 4接收@全体成员通知 5不接收通知
+}
+message UpdateChatDialogMuteConfigResp {
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 42、删除消息
+```
+message DeletePrivateChatMessageReq {
+    //DeletePrivateChatMessageReqCmdId = 0x6001100D;
+    string destId = 1; //目标会话
+    int64 msgId = 2; //待删除的消息id
+    repeated int64 msgIdList = 3; //批量删除的消息id
+}
+message DeletePrivateChatMessageResp {
+    //DeletePrivateChatMessageRespCmdId = 0x6001800D;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 43、删除所有历史消息, 该dialog还保留
+```
+message DeletePrivateChatHistoryReq {
+    //DeletePrivateChatHistoryReqCmdId = 0x6001100E;
+    string destId = 1; //目标会话
+    int64 msgId = 2; //待删除的消息id
+}
+message DeletePrivateChatHistoryResp {
+    //DeletePrivateChatHistoryRespCmdId = 0x6001800E;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 44、获取会话概要信息
+```
+message GetBriefDialogListReq {
+    //GetBriefDialogListReqCmdId = 0x6001101F;
+    repeated string destId = 1; //目标destId列表
+}
+message GetBriefDialogListResp {
+    //GetBriefDialogListRespCmdId = 0x6001801F;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    repeated string notExistDestId = 3; //List<destId> 不存在会话的destId列表
+    int64 seqno = 4; //服务器端最新的消息序号
+    map<string, BriefDialog> briefDialog = 5; // Map<destId, BriefDialog>
+}
+```
+
+## 45、根据时间获取dialog设置
+```
+message GetNewSettingDialogListReq {
+    //0x60018036
+    int64 time = 1; //上次dialog设置时间
+}
+message GetNewSettingDialogListResp {
+    //0x60018037
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    map<string, BriefDialog> briefDialog = 3; // Map<destId, BriefDialog>
+    int64 setTime = 4;//最新设置时间
+}
+```
+
+
+## 45、进入单聊对话
+```
+message EnterPrivateChatReq {
+    //EnterPrivateChatReqCmdId = 0x60011011;
+    int64 destId = 1; //目标会话
+    int32 unreadMessageCount = 2; //客户端目前未读消息条数
+}
+message EnterPrivateChatResp {
+    //EnterPrivateChatRespCmdId = 0x60018011;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 46、离开单聊对话
+```
+message LeavePrivateChatReq {
+    //LeavePrivateChatReqCmdId = 0x60011012;
+    int64 destId = 1; //目标会话
+}
+message LeavePrivateChatResp {
+    //LeavePrivateChatRespCmdId = 0x60018012;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 47、单聊截屏
+```
+message TakePrivateChatScreenshotReq {
+    //TakePrivateChatScreenshotReqCmdId = 0x60011013;
+    string destId = 1; //目标会话
+}
+message TakePrivateChatScreenshotResp {
+    //TakePrivateChatScreenshotRespCmdId = 0x60018013;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 48、更新阅后即焚设置
+```
+message UpdatePrivateChatDialogBurnAfterReadingConfigReq {
+    //UpdatePrivateChatDialogBurnAfterReadingConfigReqCmdId = 0x60011014;
+    string destId = 1; //目标会话
+    bool burnAfterReadingFlag = 2; //是否阅后即焚
+    int64 burnAfterReadingTime=3; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+}
+message UpdatePrivateChatDialogBurnAfterReadingConfigResp {
+    //UpdatePrivateChatDialogBurnAfterReadingConfigRespCmdId = 0x60018014;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 49、获取会话密钥 注: 该请求不区分 privatechat/groupchat
+```
+message GetDialogKeyReq {
+    //GetDialogKeyReqCmdId = 0x60011015;
+    repeated string destId = 1; //会话id列表
+    string clientSign = 2; //客户端签名
+}
+message GetDialogKeyResp {
+    //GetDialogKeyRespCmdId = 0x60018015;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 dialogKeyVersion = 3; // dialogKey数据版本
+    repeated string retryUid = 4; //未找到dialogKey的uid列表
+    map<string, AesKeyAndIV> entry = 5; //有dialogKey的uid
+    string serverSign = 6; //服务器端签名
+}
+```
+
+## 50、实时语音: 呼叫对方
+```
+message StartPrivateAudioCallReq {
+    //StartPrivateAudioCallReqCmdId = 0x60011017;
+    int64 destId = 1; //被呼叫的对方uid
+}
+message StartPrivateAudioCallResp {
+    //StartPrivateAudioCallRespCmdId = 0x60018017;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    string channelKey = 3; //服务器端去AGORA获取的channel key
+    string channelName = 4; //服务器端去AGORA获取channel key时使用的channelName参数
+    string encryKey= 5;//服务器随机生成的加密key 目前预埋
+}
+```
+
+## 51、实时语音: 被呼叫的用户 接听语音聊天
+```
+message AnswerPrivateAudioCallReq {
+    //AnswerPrivateAudioCallReqCmdId = 0x60011018;
+    int64 destId = 1; //呼叫方uid
+    string channelKey = 2; //服务器端去AGORA获取的channel key
+    string channelName = 3; //服务器端去AGORA获取channel key时使用的channelName参数
+    string encryKey= 4;//服务器随机生成的加密key 目前预埋
+}
+message AnswerPrivateAudioCallResp {
+    //AnswerPrivateAudioCallRespCmdId = 0x60018018;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 52、实时语音: 被呼叫的用户 按了"拒绝"按钮
+```
+message RejectPrivateAudioCallReq {
+    //RejectPrivateAudioCallReqCmdId = 0x60011019;
+    int64 destId = 1; //呼叫方uid
+    string channelKey = 2; //服务器端去AGORA获取的channel key
+    string channelName = 3; //服务器端去AGORA获取channel key时使用的channelName参数
+    string encryKey= 4;//服务器随机生成的加密key 目前预埋
+}
+message RejectPrivateAudioCallResp {
+    //RejectPrivateAudioCallRespCmdId = 0x60018019;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 53、实时语音: 在对方未接听的情况下 呼叫方按了"取消" 按钮
+```
+message CancelPrivateAudioCallReq {
+    //CancelPrivateAudioCallReqCmdId = 0x6001101A;
+    int64 destId = 1; //呼叫方uid
+    string channelKey = 2; //服务器端去AGORA获取的channel key
+    string channelName = 3; //服务器端去AGORA获取channel key时使用的channelName参数
+    string encryKey= 4;//服务器随机生成的加密key 目前预埋
+}
+message CancelPrivateAudioCallResp {
+    //CancelPrivateAudioCallRespCmdId = 0x6001801A;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 54、实时语音: 双方建立正常通话后 按了"挂断"按钮
+```
+message EndPrivateAudioCallReq {
+    //EndPrivateAudioCallReqCmdId = 0x6001101B;
+    int64 destId = 1; //呼叫方uid
+    string channelKey = 2; //服务器端去AGORA获取的channel key
+    string channelName = 3; //服务器端去AGORA获取channel key时使用的channelName参数
+    string encryKey= 4;//服务器随机生成的加密key 目前预埋
+}
+message EndPrivateAudioCallResp {
+    //EndPrivateAudioCallRespCmdId = 0x6001801B;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 55、实时语音提醒: 呼叫方 等待过长 被取消呼叫
+```
+message TimeOutPrivateAudioCallReq {
+    //TimeOutPrivateAudioCallReqCmdId = 0x6001101C;
+    int64 destId = 1; //呼叫方uid
+    string channelKey = 2; //服务器端去AGORA获取的channel key
+    string channelName = 3; //服务器端去AGORA获取channel key时使用的channelName参数
+    string encryKey= 4;//服务器随机生成的加密key 目前预埋
+}
+message TimeOutPrivateAudioCallResp {
+    //TimeOutPrivateAudioCallRespCmdId = 0x6001801C;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 56、更新单聊截屏通知设置
+```
+message UpdatePrivateChatDialogTakeScreenshotConfigReq {
+    //UpdatePrivateChatDialogTakeScreenshotConfigReqCmdId = 0x6001101D;
+    string destId = 1; //会话id
+    bool takeScreenshotFlag = 2; //是否开启截屏通知
+}
+message UpdatePrivateChatDialogTakeScreenshotConfigResp {
+    //UpdatePrivateChatDialogTakeScreenshotConfigRespCmdId = 0x6001801D;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 57、撤回消息 请求
+```
+message RecallPrivateChatMessageReq {
+   //RecallPrivateChatMessageReqCmdId = 0x60011022;
+    string destId = 1; //目标会话
+    int64 msgId = 2; //待删除的消息id
+    bool isAdmin = 3; //是否管理员撤回
+    string isDelete = 4;
+    string extra = 5;
+}
+message RecallPrivateChatMessageResp {
+    //RecallPrivateChatMessageRespCmdId = 0x60018022;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 58、开始正在输入
+```
+message StartTypingPrivateChatReq {
+  //StartTypingPrivateChatReqCmdId = 0x60011020;
+  string destId = 1; //目标id
+}
+message StartTypingPrivateChatResp {
+  //StartTypingPrivateChatRespCmdId = 0x60018020;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 59、结束正在输入
+```
+message EndTypingPrivateChatReq {
+  //EndTypingPrivateChatReqCmdId = 0x60011021;
+  string destId = 1; //目标id
+}
+message EndTypingPrivateChatResp {
+  //EndTypingPrivateChatRespCmdId = 0x60018021;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 60、已到达对方手机回执
+```
+message SendPrivateChatArrivalAckReq {
+    //SendPrivateChatArrivalAckReqCmdId = 0x60011023;
+    repeated ChatMessage chatMessage = 1; //接收者与已达消息 的集合
+}
+message SendPrivateChatArrivalAckResp {
+  //SendPrivateChatArrivalAckRespCmdId = 0x60018023;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 61、获取私聊历史消息
+```
+message GetHistoryMessageReq {
+    string dialogKeys = 1;
+    int64 offset = 2; //左区间
+    int64 oldOffset = 3; //返回新旧区间的消息
+    int32 rows = 4;
+    bool newToOld = 5;
+}
+
+message GetHistoryMessageResp {
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    DialogMessageList msg = 3; // map<destId, DialogMessageList> 有新消息的会话对应的消息列表
+    bool isEnd = 4;
+}
+```
+
+## 62、删除会话以及所有历史消息, 如果没收到消息则不会拉取到该Dialog
+```
+message CleanHistoryMessageReq {
+    //DeletePrivateChatDialogReqCmdId = 0x60011004;
+    string destId = 1; // 会话id
+    int32 type = 2; //0私聊 1群聊
+    int64 msgTime = 3; //删除消息时间戳
+}
+message CleanHistoryMessageResp {
+    //DeletePrivateChatDialogRespCmdId = 0x60018004;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+
+## 63、群聊 开始输入主动推送
+```
+message StartTypingGroupChatMessagePushResp {
+    //StartTypingGroupChatMessagePushRespCmdId = 0x60028FFE;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 groupId = 3; //对应群id
+    int64 destId = 4; //谁输入的
+    string nickName = 5; //昵称 预留
+}
+
+//群聊 结束输入主动推送
+message EndTypingGroupChatMessagePushResp {
+    //EndTypingGroupChatMessagePushRespCmdId = 0x60028FFD;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+    int64 groupId = 3; //对应群id
+    int64 destId = 4; //谁输入的
+}
+```
+
+## 64、创建群聊 请求
+```
+message CreateGroupChatDialogReq{
+  //CreateGroupChatDialogReqCmdId=0x60021005;
+  repeated int64 memberUid=1;
+  bool isSuper = 2;
+}
+
+//创建群聊 返回
+message CreateGroupChatDialogResp{
+  //CreateGroupChatDialogRespCmdId=0x60028005;
+   int32 errorCode = 1;
+     string errorMessage = 2;
+   int64 groupId=3; // 创建成功后server端的groupId
+   string groupTitle=4; // group名字
+   repeated GroupMember groupMember=5; // 群聊成员信息列表
+
+}
+```
+
+## 65、创建群聊频道 请求
+```
+message CreateGroupChannelDialogReq{
+  int64 groupId=1;
+  int64 srcId=2;
+  string channelId=3;
+  string channelName=4;
+  int32 type = 5; // 0公有频道 1私有频道
+}
+
+//创建群聊频道 返回
+message CreateGroupChannelDialogResp{
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+## 66、解散群 请求
+```
+message DeleteGroupReq{
+  //CreateGroupChatDialogReqCmdId=0x60021005;
+  int64 memberUid=1;
+}
+
+//解散群 返回
+message DeleteGroupResp{
+  //CreateGroupChatDialogRespCmdId=0x60028005;
+  int32 errorCode = 1;
+  string errorMessage = 2;
+  int64 groupId=3; // 解散的groupId
+
+}
+```
+
+## 67、删除群成员 请求
+```
+message DeleteGroupChatUserReq{
+  //DeleteGroupChatUserReqCmdId=0x60021012;
+   int64 groupId=1; // 群id
+   repeated int64 memberUid=2;
+}
+
+//删除群成员 返回
+message DeleteGroupChatUserResp{
+   //DeleteGroupChatUserRespCmdId=0x60028012;
+   int32 errorCode = 1;
+      string errorMessage = 2;
+   string notification=3; // 操作后的提醒消息
+   string groupTitle=4; // 操作后的群名称
+   int32 successNum=5; // 删除成功的成员数量
+
+}
+```
+
+## 68、添加群成员 请求
+```
+message AddGroupChatUserNewReq{
+  //AddGroupChatUserNewReqCmdId=0x60021023;
+   int64 groupId=1; // 群id
+   string channelId=2; // 频道id
+   repeated int64 memberUid=3;
+}
+
+//添加群成员 返回
+message AddGroupChatUserNewResp{
+   //AddGroupChatUserNewRespCmdId=0x60028023;
+    int32 errorCode = 1;
+      string errorMessage = 2;
+    bool groupAuthFlag=3;// 是否开启了群认证
+   string notification=4; // 操作后的提醒消息
+   string groupTitle=5; // 操作后的群名称
+   int32 successNum=6; // 新增加成功的成员数量
+   repeated GroupMember groupMember=7; // 新增加的群聊成员信息列表
+}
+```
+
+## 69、修改群名称 请求
+```
+message EditGroupTitleReq{
+  //EditGroupTitleReqCmdId=0x6002100F;
+   int64 groupId=1; // 群id
+   string title=2;//群标题
+}
+
+//修改群名称 返回
+message EditGroupTitleResp{
+   //EditGroupTitleRespCmdId=0x6002800F;
+   int32 errorCode = 1;
+      string errorMessage = 2;
+   string groupTitle=3; // 修改后的title
+   string notification=4; // 操作后的提醒消息
+}
+```
+
+## 70、修改群公告 请求
+```
+message EditGroupNoticeReq{
+   //EditGroupNoticeReqCmdId=0x60021010;
+   int64 groupId=1; // 群id
+   string notice=2;//目标群公告
+}
+
+
+//修改群公告 返回
+message  EditGroupNoticeResp{
+   //EditGroupNoticeRespCmdId=0x60028010;
+   int32 errorCode = 1;
+      string errorMessage = 2;
+   string notification=3; // 操作后的提醒消息
+   int64 announcementPostTime=4; // 公告发布时间
+}
+```
+
+## 71、添加群管理员 请求
+```
+message AddGroupChatAdminReq{
+  //AddGroupChatAdminReqCmdId=0x60021029;
+   int64 groupId=1; // 群id
+   repeated int64 memberUid=2;
+}
+//添加管理员 返回
+message AddGroupChatAdminResp{
+   //AddGroupChatAdminRespCmdId=0x60028029;
+   int32 errorCode = 1;
+        string errorMessage = 2;
+}
+```
+
+## 72、删除群管理员 请求
+```
+message DeleteGroupChatAdminReq{
+  //DeleteGroupChatAdminReqCmdId=0x6002102A;
+   int64 groupId=1; // 群id
+   repeated int64 memberUid=2;
+}
+
+//添加管理员 返回
+message DeleteGroupChatAdminResp{
+   //DeleteGroupChatAdminRespCmdId=0x6002802A;
+   int32 errorCode = 1;
+        string errorMessage = 2;
+}
+```
+
+## 73、编辑群昵称 请求
+```
+message EditGroupAliasReq{
+   //EditGroupAliasReqCmdId=0x60021011;
+   int64 groupId=1; // 目标群会话groupId
+   string alias=2; // 别名
+}
+
+//编辑群昵称 返回
+message EditGroupAliasResp{
+   //EditGroupAliasRespCmdId=0x60028011;
+     int32 errorCode = 1;
+        string errorMessage = 2;
+     string notification=3;//提示消息
+}
+```
+
+## 74、退群并删除历史记录 请求
+```
+message DeleteAndLeaveGroupChatDialogReq{
+   //DeleteAndLeaveGroupChatDialogReqCmdId=0x60021015;
+   int64 groupId=1; // 目标群会话in
+}
+
+//退群并删除历史记录 返回
+message DeleteAndLeaveGroupChatDialogResp{
+   //DeleteAndLeaveGroupChatDialogRespCmdId=0x60028015;
+   int32 errorCode = 1;
+      string errorMessage = 2;
+   string notification=3;//提示消息
+
+}
+```
+
+## 75、阅后即焚设置 请求
+```
+message UpdateGroupChatDialogBurnAfterReadingConfigReq{
+   //UpdateGroupChatDialogBurnAfterReadingConfigReqCmdId=0x60021018;
+   string groupId=1; // 群id
+   bool burnAfterReadingFlag=2; // 是否阅后即焚
+   int64 burnAfterReadingTime=3; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+}
+//阅后即焚设置 返回
+message UpdateGroupChatDialogBurnAfterReadingConfigResp{
+   //UpdateGroupChatDialogBurnAfterReadingConfigRespCmdId=0x60028018;
+   int32 errorCode = 1;
+        string errorMessage = 2;
+}
+```
+
+## 76、更新群聊截屏通知设置 请求
+```
+message UpdateGroupChatDialogTakeScreenshotConfigReq{
+   //UpdateGroupChatDialogTakeScreenshotConfigReqCmdId=0x60021027;
+   string groupId=1;  // 群聊id
+   bool takeScreenshotFlag=2; // 是否开启截屏通知
+}
+//更新群聊截屏通知设置 返回
+message UpdateGroupChatDialogTakeScreenshotConfigResp{
+   //UpdateGroupChatDialogTakeScreenshotConfigRespCmdId=0x60028027;
+   int32 errorCode = 1;
+        string errorMessage = 2;
+}
+```
+
+## 77、发送消息 请求
+```
+message SendGroupChatMessageReq{
+  //SendGroupChatMessageReqCmdId= 0x60021001;
+  string groupId = 1; // 群id
+  int64 localId = 2; // app端分配的消息id
+  string msgPreContent = 3; // 前置消息的内容 (如果没有多媒体内容，preContent传空值，)
+  string msgPostContent = 4; // 后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+  bool mediaFlag = 5; // 是否有多媒体内容
+  int32 mediaConstructor = 6; // 消息中包涵的多媒体类型
+  // 取值为相应的SGMediaObject其constructor
+  string mediaAttribute = 7; // 多媒体属性的JSON格式
+  repeated int64 at = 8; // @用户列表
+  string extra = 9;
+  string assign = 10; //给指定用户发消息
+  bool atAll = 11; //是否at all
+  bytes msgContent = 12;
+  string pushContent = 13;
+  bool isBackEnd = 14; //是否是后端发起的，后端发起的，不判断用户是否在群里
+  bool isNotIncludeSender = 15; //消息发送者是否可在客户端接收该消息
+  string objectName = 16; //消息类型
+  bool save = 17; //是否需要保存到db
+}
+//发送消息 回复
+message SendGroupChatMessageResp{
+   //SendGroupChatMessageRespCmdId=0x60028001;
+   int32 errorCode = 1;
+        string errorMessage=2;
+   int64 localId=3; // app端分配的消息id
+   int64 msgId=4; // 服务器端消息id
+   int64 msgSendTime=5; // 服务器端记录的消息发送时间
+    int64 seqno=6; //消息游标
+}
+```
+
+## 78、群聊reply/引用消息 请求
+```
+message ReplyGroupChatMessageReq{
+   //ReplyGroupChatMessageReqCmdId=0x60021002;
+   int64 groupId=1; // 群id
+   int64 localId=2; // app端分配的消息id
+   string msgPreContent=3; // 前置消息的内容 (如果没有多媒体内容，preContent传空值，)
+   string msgPostContent=4; // 后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+   bool mediaFlag=5; // 是否有多媒体内容
+   int32 mediaConstructor=6; // 消息中包涵的多媒体类型
+           // 取值为相应的SGMediaObject其constructor
+   string mediaAttribute=7; // 多媒体属性的JSON格式
+   repeated int64 at = 8; // @用户列表
+
+   int64 msgIdReferenced=9; // 引用消息的id
+   int64 msgSrcIdReferenced=10; // 引用消息的发件人id
+   int64 msgDestIdReferenced=11; // 引用消息的收件人id
+   string msgPreContentReferenced=12; // 前置消息的内容
+             // (如果没有多媒体内容，preContent传空值，)
+   string msgPostContentReferenced=13; // 后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+   bool mediaFlagReferenced=14; // 是否有多媒体内容
+   int32 mediaConstructorReferenced=15; // 消息中包涵的多媒体类型
+             // 取值为相应的SGMediaObject其constructor
+   string mediaAttributeReferenced=16; // 多媒体属性的JSON格式
+   int64 msgSendTimeReferenced=17; // 引用消息的发送时间
+}
+
+//群聊reply消息  回复
+message ReplyGroupChatMessageResp{
+   //ReplyGroupChatMessageRespCmdId=0x60028002;
+   int32 errorCode = 1;
+        string errorMessage=2;
+   int64 localId=3; // app端分配的消息id
+   int64 msgId=4; // 服务器端消息id
+   int64 msgSendTime=5; // 服务器端记录的发送时间戳
+}
+```
+
+## 79、转发 请求
+```
+message ForwardMessageToGroupChatReq{
+  //ForwardMessageToGroupChatReqCmdId=0x60021003;
+   int64 groupId=1; // 群id
+   int64 localId=2; // app端分配的消息id
+   string msgPreContent=3; // 前置消息的内容 (如果没有多媒体内容，preContent传空值，)
+   string msgPostContent=4; // 后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+   bool mediaFlag=5; // 是否有多媒体内容
+   int32 mediaConstructor=6; // 消息中包涵的多媒体类型
+   string mediaAttribute=7; // 多媒体属性的JSON格式
+   repeated int64 at = 8; // @用户列表
+
+   int64 msgIdReferenced=9; // 引用消息的id
+   int64 msgSrcIdReferenced=10; // 引用消息的发件人id
+   int64 msgDestIdReferenced=11; // 引用消息的收件人id
+   string msgPreContentReferenced=12; // 前置消息的内容
+             // (如果没有多媒体内容，preContent传空值，)
+   string msgPostContentReferenced=13; // 后置消息的内容 (如果没有多媒体内容，请使用这个字段)
+   bool mediaFlagReferenced=14; // 是否有多媒体内容
+   int32 mediaConstructorReferenced=15; // 消息中包涵的多媒体类型
+             // 取值为相应的SGMediaObject其constructor
+   string mediaAttributeReferenced=16; // 多媒体属性的JSON格式
+   int64 msgSendTimeReferenced=17; // 引用消息的发送时间
+   bool msgGroupFlagReferenced=18; // 引用消息是否来自群消息
+   int64 msgGroupIdReferenced=19; // 如引用消息来自群消息，对应的群id
+}
+//转发 回复
+message ForwardMessageToGroupChatResp{
+   //ForwardMessageToGroupChatRespCmdId=0x60028003;
+   int32 errorCode = 1;
+        string errorMessage=2;
+   int64 localId=3; // app端分配的消息id
+   int64 msgId=4; // 服务器端消息id
+   int64 msgSendTime=5; // 服务器端记录的发送时间戳
+}
+```
+
+## 80、获取群详情
+```
+message GetGroupChatDialogDetailNewReq{
+  //GetGroupChatDialogDetailNewReqCmdId=0x6002101E;
+  int64 groupId=1; // 群id
+}
+
+ //获取群详情  回复
+message GetGroupChatDialogDetailNewResp{
+  //GetGroupChatDialogDetailNewRespCmdId=0x6002801E;
+   int32 errorCode = 1;
+        string errorMessage=2;
+   int64 groupId=3; // 群id
+   string adminId=4; // 管理员id
+   bool isUntitled=5; // 该群是否有命名
+   string groupTitle=6; // 群名称
+   string announcementContent=7; // 群公告内容
+   int64 announcementPostTime=8; // 群公告更新时间
+   int64 announcementPostId=9; // 群公告修改人uid
+   string announcementPostUserSmallAvatarUrl=10; // 群公告修改人头像缩略图
+   string smallAvatarUrl=11; // 头像缩略图
+   string originalAvatarUrl=12; // 头像原图
+   string qrcodeString=13; // 二维码缩略图
+   bool stickyFlag=14; // 是否置顶
+   bool muteFlag=15; // 是否免打扰
+   bool blockFlag=16; // 是否拉黑
+   bool burnAfterReadingFlag=17; // 是否阅后即焚
+   bool groupAuthFlag=18; // 是否开启群认证
+   bool groupContactFlag=19; // 群是否保存到通讯录
+   int32 totalMemberNumber=20; // 群成员总共人数
+   //string memberInfo=21; // 群成员信息 List<GroupMember>对应的JSON串
+   repeated GroupMember groupMember = 21;//返回群成员list
+   bool takeScreenshotFlag=22; // 是否开启截屏通知
+   bool groupMessageLifetimeFlag=23;//群消息有效期开关 (true为开启 false为关闭)
+    int64 groupMessageLifetime=24;//群消息有效期 (单位 ms 默认为0永远不过期)
+    int64 burnAfterReadingTime=25; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+}
+```
+
+
+## 81、获取历史消息 请求
+```
+message GetGroupChatHistoryMessageReq{
+   //GetGroupChatHistoryMessageReqCmdId = 0x60021007;
+   string groupId=1; // 群id
+   int64 seqno=2; // 消息序号下限
+   int32 rows=3; // 希望拉取的消息数量
+}
+//获取历史消息 回复
+message GetGroupChatHistoryMessageResp{
+   //GetGroupChatHistoryMessageRespCmdId=0x60028007;
+   int32 errorCode = 1;
+        string errorMessage=2;
+   int64 groupId=3; // 群id
+  int64 seqno=4; // 消息序号下限
+   bool hasNext=5; // 是否还有历史消息
+   repeated DialogMessage dialogMessage=6; // 消息列表
+}
+```
+
+## 82、群聊截屏 请求
+```
+message TakeGroupChatScreenshotReq{
+  //TakeGroupChatScreenshotReqCmdId=0x6002101D;
+  int64 groupId=1; // 群id
+}
+//群聊截屏回复
+message TakeGroupChatScreenshotResp{
+  //TakeGroupChatScreenshotRespCmdId=0x6002801D;
+  int32 errorCode = 1;
+    string errorMessage=2;
+}
+```
+
+## 83、进入群聊对话
+```
+message EnterGroupChatReq{
+   //EnterGroupChatReqCmdId = 0x60021016;
+   int64 groupId=1; // 群id
+   int32 msgUnreadCount=2; // 客户端目前未读消息条数
+}
+
+//进入群聊对话 回复
+message EnterGroupChatResp{
+   //EnterGroupChatRespCmdId = 0x60028016;
+   int32 errorCode = 1;
+      string errorMessage=2;
+      bool groupMessageLifetimeFlag = 3;//群消息有效期开关 (true为开启 false为关闭)
+        int64 groupMessageLifetime = 4;//群消息有效期 (单位 ms 默认为0永远不过期)
+        bool memberFlag=5;//是否是群成员 true表示是群成员 false表示不是群成员
+}
+```
+
+## 84、离开群聊对话 请求
+```
+message LeaveGroupChatReq{
+   //LeaveGroupChatReqCmdId=0x60021017;
+      int64 groupId=1; // 群id
+}
+//离开群聊对话 回复
+message LeaveGroupChatResp{
+  //LeaveGroupChatRespCmdId=0x60028017;
+  int32 errorCode = 1;
+    string errorMessage=2;
+}
+```
+
+## 85、置顶设置
+```
+message UpdateGroupChatDialogStickyConfigReq{
+  //UpdateGroupChatDialogStickyConfigReqCmdId=0x6002100A;
+  string groupId=1; // 群id
+  bool stickyFlag=2; // 是否置顶
+}
+
+
+//置顶设置 回复
+message UpdateGroupChatDialogStickyConfigResp{
+  //UpdateGroupChatDialogStickyConfigRespCmdId=0x6002800A;
+  int32 errorCode = 1;
+    string errorMessage=2;
+}
+```
+
+## 86、静音设置  请求
+```
+message UpdateGroupChatDialogMuteConfigReq{
+   //UpdateGroupChatDialogMuteConfigReqCmdId= 0x6002100B;
+   string groupId=1; // 群id
+   bool  muteFlag=2; // 是否静音
+}
+
+//静音设置 回复
+message UpdateGroupChatDialogMuteConfigResp{
+   //UpdateGroupChatDialogMuteConfigRespCmdId= 0x6002800B;
+   int32 errorCode = 1;
+     string errorMessage=2;
+}
+```
+
+## 87、拉黑设置 请求
+```
+message UpdateGroupChatDialogBlockConfigReq{
+   //UpdateGroupChatDialogBlockConfigReqCmdId= 0x6002100C;
+   int64 groupId=1; // 群id
+   bool blockFlag=2; // 是否拉黑
+}
+
+
+//拉黑设置 回复
+message UpdateGroupChatDialogBlockConfigResp{
+   //UpdateGroupChatDialogBlockConfigRespCmdId= 0x6002800C;
+   int32 errorCode = 1;
+     string errorMessage=2;
+}
+```
+
+## 88、用户删除单条记录
+```
+message DeleteGroupChatMessageReq {
+    //DeleteGroupChatMessageReqCmdId = 0x6002100D;
+    int64 groupId =1; // 群id
+    int64 msgId = 2; //待删除的消息id
+}
+
+//用户删除单条记录 回复
+message DeleteGroupChatMessageResp {
+    //DeleteGroupChatMessageRespCmdId = 0x6002800D;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+
+## 89、撤回消息 请求
+```
+message RecallGroupChatMessageReq {
+   //RecallGroupChatMessageReqCmdId = 0x6002102B;
+    string groupId = 1; //目标会话
+    int64 msgId = 2; //待删除的消息id
+   bool isAdmin = 3; //是否管理员撤回
+   string isDelete = 4;
+   string extra = 5;
+}
+message RecallGroupChatMessageResp {
+    //RecallGroupChatMessageRespCmdId = 0x6002802B;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 90、群聊正在输入-开始
+```
+message StartTypingGroupChatReq {
+    //StartTypingGroupChatReqCmdId = 0x6002102C;
+    int64 groupId = 1; //会话群id
+}
+
+message StartTypingGroupChatResp {
+    //StartTypingGroupChatRespCmdId = 0x6002802C;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 91、群聊正在输入-结束
+```
+message EndTypingGroupChatReq {
+    //EndTypingGroupChatReqCmdId = 0x6002102D;
+    int64 groupId = 1; //会话群id
+}
+
+message EndTypingGroupChatResp {
+    //EndTypingGroupChatRespCmdId = 0x6002802D;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 92、群聊送达消息回执
+```
+message SendGroupChatArrivalAckReq {
+    //SendGroupChatArrivalAckReqCmdId = 0x60021030;
+    repeated GroupChatMessage groupChatMessage = 1; //拉取消息返回的群id+谁拉取的+消息id列表
+}
+message SendGroupChatArrivalAckResp {
+    //SendGroupChatArrivalAckRespCmdId = 0x60028030;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 93、群聊已读消息回执
+```
+message SendGroupChatReadAckReq {
+    //SendGroupChatReadAckReqCmdId = 0x60021031;
+    repeated GroupChatMessage groupChatMessage = 1; //拉取消息返回的群id+谁拉取的+消息id列表
+}
+message SendGroupChatReadAckResp {
+    //SendGroupChatReadAckRespCmdId = 0x60028031;
+    int32 errorCode = 1;
+    string errorMessage = 2;
+}
+```
+
+## 94、更新群消息有效期开关
+```
+message UpdateGroupMessageLifetimeFlagReq{
+    //UpdateGroupMessageLifetimeFlagReqCmdId=0x6002104C;
+    int64 groupId=1;
+    bool groupMessageLifetimeFlag=2;//群消息有效期开关 (true为开启 false为关闭)
+}
+
+//更新群消息有效期开关
+message UpdateGroupMessageLifetimeFlagResp{
+    //UpdateGroupMessageLifetimeFlagRespCmdId=0x6002804C;
+    int32 errorCode = 1;
+    string errorMessage=2;
+    bool groupMessageLifetimeFlag=3;//群消息有效期开关 (true为开启 false为关闭)
+    int64 groupMessageLifetime=4;//群消息有效期 (单位 ms 默认为0永远不过期)
+
+}
+```
+
+## 95、全体禁言
+```
+message AddGroupChatBanReq{
+  //AddGroupChatUserNewReqCmdId=0x60021023;
+  int64 groupId=1; // 群id
+  repeated int64 memberUid=2;
+  int32 minute=3; // 禁言时间
+}
+
+//全体禁言 返回
+message AddGroupChatBanResp{
+  //AddGroupChatUserNewRespCmdId=0x60028023;
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+## 96、取消全体禁言
+```
+message AddGroupChatBanRoolbackReq{
+  //AddGroupChatUserNewReqCmdId=0x60021023;
+  int64 groupId=1; // 群id
+  repeated int64 memberUid=2;
+}
+
+//取消全体禁言 返回
+message AddGroupChatBanRoolbackResp{
+  //AddGroupChatUserNewRespCmdId=0x60028023;
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+## 97、添加禁言白名单
+```
+message AddGroupChatBanWhiteReq{
+  //AddGroupChatUserNewReqCmdId=0x60021023;
+  int64 groupId=1; // 群id
+  repeated int64 memberUid=2;
+}
+
+//添加禁言白名单 返回
+message AddGroupChatBanWhiteResp{
+  //AddGroupChatUserNewRespCmdId=0x60028023;
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+## 99、移除禁言白名单
+```
+message AddGroupChatBanWhiterRollbackReq{
+  //AddGroupChatUserNewReqCmdId=0x60021023;
+  int64 groupId=1; // 群id
+  repeated int64 memberUid=2;
+}
+
+//移除禁言白名单 返回
+message AddGroupChatBanWhiteRollbackResp{
+  //AddGroupChatUserNewRespCmdId=0x60028023;
+  int32 errorCode = 1;
+  string errorMessage = 2;
+}
+```
+
+
+# 公共对象
+
+```
+//封装群id 发消息者id 消息id列表
+message GroupChatMessage {
+    int64 groupId = 1;
+    int64 userId = 2; //谁发送的
+    repeated int64 msgId = 3;
+}
+```
+
+## key对象 AES KEY and IV
+```
+message AesKeyAndIV {
+    string aesKey = 1; //aes CBC Key
+    string aesIV = 2; //aes CBC IV
+}
+```
+
+## 用户配置项
+```
+message ConfigItem {
+    string key = 1; //configuration key
+    string value = 2; //configuration value
+}
+```
+
+## 用户信息
+```
+message User {
+  int64 uid = 1; //用户唯一标识
+  string nickName = 2; //用户名
+  string langCode = 3; //国家手机代码
+  string phone = 4; //用户注册IM时使用填写手机号码
+  string numberInPhoneBook = 5; //用户在手机通讯录中的号码
+  string smallAvatarUrl = 6; //头像缩略图
+  string originalAvatarUrl = 7; //头像原图
+  string email = 8; //用户邮箱
+  string qrcodeString = 9; //二维码
+  int32 gender = 10; //用户性别 0未设定 1男 2女
+  int32 contactStatus = 11; //通讯录状态，1:未添加, 5:已添加, 100:已屏蔽（已取关）
+  string alias = 12; //用户别名
+  repeated string aliasMobile = 13; // 备注电话号码列表
+    string aliasDesp = 14; // 备注描述,公众号的详细描述字段
+  string dialogMenuContent =15; // 公众号对话菜单项
+  int32 chatRobotType =16;//公众号类型，如果是公众号的话 1-普通 2-全推类型
+}
+```
+
+## 会话消息
+```
+message DialogMessage {
+  int64 msgId = 1; //消息在服务器端分配的id
+  int64 localId = 2; //app端分配的消息id 仅对发件人有意义，对收件人来说该值为0
+  int32 msgStatus = 3; //msg状态（显示回执等需要）
+  int64 srcId = 4; //消息发件人uid
+  string destId = 5; //消息收件人uid
+  bool isOut = 6; //true表示发送出去的消息，false表示接收进来的消息
+  int32 senderCategory = 7; //发件人类型 1为系统消息 8自己 9聊天伙伴
+  int32 msgCategory = 8; //消息类别 1:直接发送 2:reply 3:forward
+  string msgPreContent = 9; //消息的前置内容 (如果没有多媒体内容，preContent传空值，统一使用postContent)
+  string msgPostContent = 10; //消息的后置内容 (如果没有多媒体内容，请使用这个字段)
+  bool mediaFlag = 11; //是否有多媒体内容
+  int32 mediaConstructor = 12; //消息中包涵的多媒体类型 取值为XLMediaObject其相应的constructor
+  string mediaAttribute = 13; //多媒体属性的JSON格式
+  int64 msgSendTime = 14; //消息发送的时间
+  bool burnAfterReadingFlag = 15; // 该消息是否属于"阅后即焚"
+  bool atFlag = 16; //单聊时永远为false 群聊时如为true则表示该消息在at我
+  bool replyFlag = 17; //该消息是否在回复我
+  bool referenceFlag = 18; //是否有关联消息(reply or foward)
+  int64 msgIdReferenced = 19; //关联消息的id
+  bool uploadFlag = 20;
+  int64 burnAfterReadingTime=21; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+    bool sharingGroupFlag=22;//是否是共享群消息
+  int64 seqno=23;//消息序号
+  string extra = 24; //扩展字段
+  bytes msgContent = 25;
+  string objectName = 26;
+}
+
+message DialogMessageList{
+  repeated DialogMessage dialogMessage = 1;
+}
+```
+
+
+## 被引用的会话消息，用于reply/forward场景
+```
+message ReferenceDialogMessage {
+  int64 msgId = 1; //消息在服务器端分配的id
+  int64 srcId = 2; //消息发件人uid
+  string srcName = 3; //消息发件人名字
+  int64 destId = 4; //消息收件人uid
+  string destName = 5; //消息收件人名字
+  string msgPreContent = 6; //消息的前置内容 (如果没有多媒体内容，preContent传空值，统一使用postContent)
+  string msgPostContent = 7; //消息的后置内容 (如果没有多媒体内容，请使用这个字段)
+  bool mediaFlag = 8; // 是否有多媒体内容
+  int32 mediaConstructor = 9; //消息中包涵的多媒体类型 取值为XLMediaObject其相应的constructor
+  string mediaAttribute = 10; //多媒体属性的JSON格式
+  int64 msgSendTime = 11; //消息发送的时间
+}
+```
+
+
+## 简要的会话消息，主要做消息GCM推送时用
+```
+message BriefDialogMessage {
+  int64 srcId = 1; //消息发件人id
+  string srcName = 2; //消息发件人名字
+  bool groupFlag = 3; //是不是群消息
+  int64 groupId = 4; //如是群消息，对应的groupId
+  string groupTitle = 5; //群名字
+  int64 msgSendTime = 6; //消息发送的时间
+  bool atFlag = 7; //如果是群消息，该消息是否在at收件人
+}
+```
+
+
+ ## 会话详情
+```
+message FullDialog {
+  string destId = 1; //目标id: 单聊时是对方uid, 群聊时是groupId, 需要根据groupFlag来判断
+  string dialogTitle = 2; //单聊时是对方名称, 群聊时是groupTitle
+  string smallAvatarUrl = 3; //头像缩略图
+  string backgroundImage = 4; //背景图
+  bool stickyFlag = 5; //是否置顶
+  bool muteFlag = 6; //是否免打扰
+  bool blockFlag = 7; //是否拉黑
+  bool burnAfterReadingFlag = 8; // 是否开启阅后即焚
+  bool takeScreenshotFlag = 9; //是否开启截屏通知
+  bool groupFlag = 10; //是否群聊
+  int32 totalMemberNumber = 11; //总人数
+  repeated string groupMemberSmallAvatarUrl = 12; //群成员的头像url列表，严格按照成员在群里面的顺序，返回前9个群成员的头像连接
+  int64 burnAfterReadingTime=13; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+}
+```
+
+## pc端会话
+```
+message WebFullDialog{
+   BriefDialog dialog = 1;
+   DialogMessage msg = 2;
+}
+```
+
+ ## 会话概要
+ ```
+message BriefDialog {
+  string destId = 1; //目标id: 单聊时是对方uid, 群聊时是groupId, 需要根据groupFlag来判断
+  string dialogTitle = 2; //单聊时是对方名称, 群聊时是groupTitle
+  string smallAvatarUrl = 3; //头像缩略图
+  string backgroundImage = 4; //背景图
+  bool stickyFlag = 5; //是否置顶
+  bool muteFlag = 6; //是否免打扰
+  bool blockFlag = 7; //是否拉黑
+  bool burnAfterReadingFlag = 8; // 是否开启阅后即焚
+  bool takeScreenshotFlag = 9; //是否开启截屏通知
+  bool groupFlag = 10; //是否群聊
+  int32 totalMemberNumber = 11; //总人数
+  repeated string groupMemberSmallAvatarUrl = 12; //群成员的头像url列表，严格按照成员在群里面的顺序，返回前9个群成员的头像连接
+  int64 burnAfterReadingTime=13; //当burnAfterReadingFlag为true的时候才有意义,阅后即焚时间
+  string dialogMenuContent =14; // 公众号对话菜单项
+  int32 pushNotificationLevel =15; //-1接收全部通知 0初始状态 2接收被@通知 4接收@全体成员通知 5不接收通知
+}
+ ```
+````
