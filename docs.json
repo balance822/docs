@@ -53,6 +53,23 @@
             ]
           }
         ]
+      },
+      {
+        "tab": "sdk doc",
+        "groups": [
+          {
+            "group": "sdk doc",
+            "pages": [
+              "api-reference/introduction"
+            ]
+          },
+          {
+            "group": "Endpoint Examples",
+            "pages": [
+              "sdk-doc/sdk.mdx"
+            ]
+          }
+        ]
       }
     ],
     "global": {
