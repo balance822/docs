@@ -11,29 +11,12 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "API Reference",
-        "groups": [
-          {
-            "group": "API Documentation",
-            "pages": [
-              "api-reference/introduction"
-            ]
-          }
-        ]
-      },
-      {
         "tab": "sdk doc",
         "groups": [
           {
             "group": "sdk doc",
             "pages": [
               "sdk-doc/sdk"
-            ]
-          },
-          {
-            "group": "Endpoint Examples",
-            "pages": [
-              "sdk-doc/sdk.mdx"
             ]
           }
         ]
