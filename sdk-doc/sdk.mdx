@@ -1,8 +1,25 @@
 
+# 网关协议
 
----
- 心跳请求
----
+## 请求头与请求体
+
+```
+message SGNetworkRequest {
+  //int32 cmdId = 1;
+  int64 messageSeq = 2; //客户端本地消息序列
+  int64 deviceId = 3; //设备id
+  int64 sessionId = 4; //会话id
+  int64 uid = 5;    //用户id
+  int32 protocolVersion = 6;  //协议版本
+  int64 destId = 7;  //对话id
+  bytes body = 8;  //请求体
+  string token = 9;  //token
+}
+```
+
+
+## 心跳请求
+
 
 ```
 message HeartbeatReq {
