@@ -11,12 +11,12 @@
   "navigation": {
     "tabs": [
       {
-        "tab": "sdk doc",
+        "tab": "mp",
         "groups": [
           {
-            "group": "sdk doc",
+            "group": "mp deploy",
             "pages": [
-              "sdk-doc/sdk"
+              "mp/mpdeploy"
             ]
           }
         ]
